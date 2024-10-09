@@ -1,16 +1,26 @@
 pipeline {
-  agent {
-    docker {
-      image 'abhishekf5/maven-abhishek-docker-agent:v1'
-      args '--user root -v /var/run/docker.sock:/var/run/docker.sock' // mount Docker socket to access the host's Docker daemon
+    agent {
+        docker {
+            image 'abhishekf5/maven-abhishek-docker-agent:v1'
+            args '--user root -v /var/run/docker.sock:/var/run/docker.sock'
+        }
     }
-  }
-  stages {
-    stage('Checkout') {
-      steps {
-        sh 'echo passed'
-        git branch: 'main', url: 'https://github.com/ThulasiramPatnam/Jenkins-Zero-To-Hero.git'
-      }
+    stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    try {
+                        echo 'Starting checkout process...'
+                        checkout([$class: 'GitSCM', 
+                            branches: [[name: '*/main']], 
+                            userRemoteConfigs: [[url: 'https://github.com/ThulasiramPatnam/Jenkins-Zero-To-Hero.git']]
+                        ])
+                    } catch (Exception e) {
+                        echo "Checkout failed: ${e.message}"
+                        currentBuild.result = 'FAILURE'
+                    }
+                }
+            }
+        }
     }
-}
 }
